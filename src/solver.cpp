@@ -26,3 +26,24 @@ bool Sudoku::solveSudoku() {
     }
     return true;
 }
+
+bool Sudoku::solve() {
+    return solveSudoku();
+}
+
+bool Sudoku::validate() {
+    for (int row = 0; row < 9; ++row) {
+        for (int col = 0; col < 9; ++col) {
+            int num = board[row][col];
+            if (num != 0) {
+                board[row][col] = 0; 
+                if (!isValid(row, col, num)) {
+                    board[row][col] = num;
+                    return false;
+                }
+                board[row][col] = num;
+            }
+        }
+    }
+    return true;
+}
