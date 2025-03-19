@@ -13,7 +13,8 @@ Features
 
 Future Plans
 
-    Implement a frontend interface.
+    // Implement a frontend interface.
+        --implemented a frontend using Qt, will work on making it look better next
 
     Integrate CI/CD with Jenkins.
 

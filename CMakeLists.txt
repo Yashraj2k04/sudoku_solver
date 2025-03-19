@@ -6,14 +6,28 @@ set(CMAKE_CXX_STANDARD 11) #cpp version is 11
 set(CMAKE_CXX_STANDARD_REQUIRED True) #must need cpp version 11 atleast
 
 set(SOURCES
-    src/main.cpp
+    ui/main.cpp
     src/generator.cpp
     src/solver.cpp
+    ui/main_window.cpp
 )                           #our source files, these three will be stored in SOURCES variable predifined by cmake
 
-add_executable(SudokuSolver ${SOURCES})     #executable added by cmake, named SudokuSolver (we can compiler and run all the files with ./SudokuSolver)
+
+find_package(Qt5 COMPONENTS Widgets REQUIRED)
+
+qt5_wrap_cpp(MOC_SOURCES ui/main_window.h)
+
+
+
+
+add_executable(SudokuSolver ${SOURCES} ${MOC_SOURCES})     #executable added by cmake, named SudokuSolver (we can compiler and run all the files with ./SudokuSolver)
                                             #what it does is links the object code of all these three files and makes an executable.
 include_directories(${CMAKE_SOURCE_DIR}/src)    #include directory from the source (CMakeLists.txt and the folder src )
+include_directories(${CMAKE_SOURCE_DIR}/ui)     #This included the ui folder in the cmake build consideration
+
+
+### Gotta link qt widget libraries, yeah? 
+target_link_libraries(SudokuSolver Qt5::Widgets)
 
 
 add_custom_target(run                           #run target to  run the executable.
