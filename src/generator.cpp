@@ -1,53 +1,75 @@
-#include "sudoku.h"
-#include <iostream>
-#include <ctime>
-#include <cstdlib>
-#include <algorithm>
+#include "generator.h"
 #include <random>
+#include <algorithm>
 
-Sudoku::Sudoku() : board(9, vector<int>(9, 0)) {
-    srand(time(0));
+Generator::Generator() {
+    board.fill({0});  // start a board with zeros for 9x9
 }
 
-void Sudoku::generate() {
-    board = vector<vector<int>>(9, vector<int>(9, 0)); // Reset board
+void Generator::generateSudoku(std::array<std::array<int, 9>, 9>& outBoard, Difficulty difficulty) {
+    fillBoard();        // fill up the board to make a valid sudoku solution
 
-    std::random_device rd;
-    std::mt19937 g(rd());
+    int clues;
+    switch (difficulty) {
+        case Difficulty::EASY: clues = 40; break;
+        case Difficulty::MEDIUM: clues = 30; break;
+        case Difficulty::HARD: clues = 20; break;
+    }
+                        // how many clues we leave depending upon the difficulty
 
-    // Randomize board by filling diagonal 3x3 grids with unique numbers
-    for (int i = 0; i < 9; i += 3) {
-        vector<int> numbers(9);
-        for (int j = 0; j < 9; ++j) numbers[j] = j + 1;
-        std::shuffle(numbers.begin(), numbers.end(), g);
+    removeNumbers(81 - clues);
+    outBoard = board;   
+}
 
-        for (int row = 0; row < 3; ++row) {
-            for (int col = 0; col < 3; ++col) {
-                board[i + row][i + col] = numbers[row * 3 + col];
+bool Generator::fillBoard() {       // fill up the board
+    for (int row = 0; row < 9; ++row) {
+        for (int col = 0; col < 9; ++col) {
+            if (board[row][col] == 0) {
+                std::vector<int> numbers(9);
+                std::iota(numbers.begin(), numbers.end(), 1);   // place numbers from 1 to 9, (increasing order) . similar to writing numbers = {1,2,3,4,5,6,7,8,9},
+                std::shuffle(numbers.begin(), numbers.end(), std::mt19937(std::random_device()())); //shuffle using random device seed
+                
+                for (int num : numbers) {
+                    if (isSafe(row, col, num)) {    //if is safe to place the random number 
+                        board[row][col] = num;      //then we place it, just ensuring we make a random board thats valid.
+                        if (fillBoard()) return true;
+                        board[row][col] = 0;
+                    }
+                }
+                return false;
             }
         }
     }
-
-    // Solve to get a complete valid board
-    solveSudoku();
-
-    // Remove numbers to create puzzle
-    int clues = 30; // Number of pre-filled clues
-    while (clues > 0) {
-        int row = rand() % 9;
-        int col = rand() % 9;
-        if (board[row][col] != 0) {
-            board[row][col] = 0;
-            clues--;
-        }
-    }
+    return true;
 }
 
-void Sudoku::printBoard() {
-    for (auto &row : board) {
-        for (int num : row) {
-            cout << num << " ";
+bool Generator::isSafe(int row, int col, int num) {     // basic validator for sudoku, if it works for the current cell to be placed
+    for (int i = 0; i < 9; ++i) {
+        if (board[row][i] == num || board[i][col] == num) return false;
+    }
+
+    int startRow = (row / 3) * 3, startCol = (col / 3) * 3;
+    for (int i = 0; i < 3; ++i) {
+        for (int j = 0; j < 3; ++j) {
+            if (board[startRow + i][startCol + j] == num) return false;
         }
-        cout << endl;
+    }
+
+    return true;
+}
+
+void Generator::removeNumbers(int count) {
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> dis(0, 8);
+            //randomizing the cells that will be actually prefilled
+
+    while (count > 0) {
+        int row = dis(gen);
+        int col = dis(gen);
+        if (board[row][col] != 0) {
+            board[row][col] = 0;
+            --count;
+        }
     }
 }

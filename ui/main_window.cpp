@@ -1,6 +1,7 @@
 #include "main_window.h"
 #include "sudoku.h"
 #include <QMessageBox>
+#include <generator.h>
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent){      // when MainWindow is created, its constructor is called
     setupUI();                                                      // constructor call for the ui to set itself up
@@ -53,7 +54,21 @@ void MainWindow::setupUI(){
     // same story, signal sent from  button saying it is clicked, this window recieves it and calls its respective function.
 }
 
-void MainWindow::generateSudoku(){
+void MainWindow::generateSudoku() {
+    Generator generator;
+    generator.generateSudoku(board, Difficulty::EASY);
+
+    // Update the ui
+    for (int row = 0; row < 9; ++row) {
+        for (int col = 0; col < 9; ++col) {
+            if (board[row][col] != 0) {
+                cells[row][col]->setText(QString::number(board[row][col]));
+            } else {
+                cells[row][col]->clear();
+            }
+        }
+    }
+
     statusLabel->setText("Sudoku Generated!");
 }
 void MainWindow::solveSudoku(){

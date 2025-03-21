@@ -7,6 +7,8 @@
 #include <QPushButton>                  // pushable buttons for solve button, generate button etc
 #include <QLabel>                       // just a label, can write sudoku # or timer or something
 
+#include<array>
+
 class MainWindow : public QMainWindow{          // MainWindow inherits QMainWindow
     Q_OBJECT                                                        // ESSENTIAL !!! this is how Qt widgets (objects??) communicate with eachother.
 
@@ -29,6 +31,9 @@ class MainWindow : public QMainWindow{          // MainWindow inherits QMainWind
         void setupUI();                         //setup the ui / load the window components
         void updateBoardFromUI();               
         void updateUIFromBoard();
+
+
+        std::array<std::array<int, 9>, 9> board;
 };
 
 #endif
