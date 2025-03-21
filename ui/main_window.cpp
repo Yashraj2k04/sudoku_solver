@@ -2,6 +2,7 @@
 #include "sudoku.h"
 #include <QMessageBox>
 #include <generator.h>
+#include <solver.h>
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent){      // when MainWindow is created, its constructor is called
     setupUI();                                                      // constructor call for the ui to set itself up
@@ -71,9 +72,19 @@ void MainWindow::generateSudoku() {
 
     statusLabel->setText("Sudoku Generated!");
 }
-void MainWindow::solveSudoku(){
+void MainWindow::solveSudoku() {
+    Solver solver;
+    solver.solveSudoku(board);              // we pass the generated board to auto solve. (we will have to change the logic by a huge extent once we make 
+                                            // cellChanged function work next) :skull:
+    for (int row = 0; row < 9; ++row) {
+        for (int col = 0; col < 9; ++col) {
+            cells[row][col]->setText(QString::number(board[row][col]));
+        }
+    }
+
     statusLabel->setText("Sudoku Solved!");
 }
+
 void MainWindow::cellChanged(){
     statusLabel->setText("Board Validated!");
 }

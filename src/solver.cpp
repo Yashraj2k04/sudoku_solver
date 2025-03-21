@@ -1,34 +1,37 @@
-#include "sudoku.h"
-#include <algorithm>
-#include <random>
+#include "solver.h"
 
-bool Sudoku::isValid(int row, int col, int num) {
+Solver::Solver() {}     //nothing to do with constructor obv.
+
+bool Solver::solveSudoku(std::array<std::array<int, 9>, 9>& board) {
+    int row, col;
+    if (!findEmptyCell(board, row, col)) {
+        return true;  // No empty cells left, puzzle is solved
+    }
+
+    for (int num = 1; num <= 9; ++num) {
+        if (isValidMove(board, row, col, num)) {        //same logic, can find the comments of generator.cpp, not gonna explain allat.
+            board[row][col] = num;
+            if (solveSudoku(board)) {
+                return true;
+            }
+            board[row][col] = 0; 
+        }
+    }
+
+    return false;
+}
+
+bool Solver::isValidMove(const std::array<std::array<int, 9>, 9>& board, int row, int col, int num) {
     for (int i = 0; i < 9; ++i) {
-        if (board[row][i] == num || board[i][col] == num || board[row - row % 3 + i / 3][col - col % 3 + i % 3] == num) {
+        if (board[row][i] == num || board[i][col] == num) {
             return false;
         }
     }
-    return true;
-}
-
-bool Sudoku::solveSudoku() {
-    std::random_device rd;
-    std::mt19937 g(rd());
-
-    for (int row = 0; row < 9; ++row) {
-        for (int col = 0; col < 9; ++col) {
-            if (board[row][col] == 0) {
-                vector<int> numbers(9);
-                for (int i = 0; i < 9; ++i) numbers[i] = i + 1;
-                std::shuffle(numbers.begin(), numbers.end(), g);
-
-                for (int num : numbers) {
-                    if (isValid(row, col, num)) {
-                        board[row][col] = num;
-                        if (solveSudoku()) return true;
-                        board[row][col] = 0;
-                    }
-                }
+    int startRow = row - row % 3;
+    int startCol = col - col % 3;
+    for (int i = 0; i < 3; ++i) {
+        for (int j = 0; j < 3; ++j) {
+            if (board[startRow + i][startCol + j] == num) {
                 return false;
             }
         }
@@ -36,23 +39,13 @@ bool Sudoku::solveSudoku() {
     return true;
 }
 
-bool Sudoku::solve() {
-    return solveSudoku();
-}
-
-bool Sudoku::validate() {
-    for (int row = 0; row < 9; ++row) {
-        for (int col = 0; col < 9; ++col) {
-            int num = board[row][col];
-            if (num != 0) {
-                board[row][col] = 0; // Temporarily empty the cell
-                if (!isValid(row, col, num)) {
-                    board[row][col] = num; // Restore the value
-                    return false;
-                }
-                board[row][col] = num; // Restore the value
+bool Solver::findEmptyCell(const std::array<std::array<int, 9>, 9>& board, int& row, int& col) {
+    for (row = 0; row < 9; ++row) {
+        for (col = 0; col < 9; ++col) {
+            if (board[row][col] == 0) {
+                return true;
             }
         }
     }
-    return true;
+    return false;
 }
