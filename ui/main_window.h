@@ -34,6 +34,7 @@ class MainWindow : public QMainWindow{          // MainWindow inherits QMainWind
 
 
         std::array<std::array<int, 9>, 9> board;
+        bool generated = false;
 };
 
 #endif

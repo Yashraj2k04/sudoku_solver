@@ -19,3 +19,11 @@ Future Plans
     Integrate CI/CD with Jenkins.
 
     Containerize with Docker and deploy to AWS.
+
+
+
+
+
+
+alrighty, i had forgotten that readme.md exists :skull:
+did so that widgets are stacked, we only make windows appear once we click on it. added a main menu screen to show title., will make sure only numbers are input allowed in the cells (yes, shoulda done that a lot earlier)

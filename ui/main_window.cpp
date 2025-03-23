@@ -1,4 +1,5 @@
 #include "main_window.h"
+#include <QVBoxLayout>
 #include "sudoku.h"
 #include <QMessageBox>
 #include <generator.h>
@@ -53,26 +54,40 @@ void MainWindow::setupUI(){
     connect(generateButton, &QPushButton::clicked, this, &MainWindow::generateSudoku);
     connect(solveButton, &QPushButton::clicked, this, &MainWindow::solveSudoku);
     // same story, signal sent from  button saying it is clicked, this window recieves it and calls its respective function.
+
+    solveButton->setEnabled(false);
+
 }
 
 void MainWindow::generateSudoku() {
+    generated = true;
+    solveButton->setEnabled(true);
     Generator generator;
     generator.generateSudoku(board, Difficulty::EASY);
 
-    // Update the ui
+    // Update the UI
     for (int row = 0; row < 9; ++row) {
         for (int col = 0; col < 9; ++col) {
             if (board[row][col] != 0) {
                 cells[row][col]->setText(QString::number(board[row][col]));
+                cells[row][col]->setReadOnly(true);  // Ensure pre-filled cells are locked
             } else {
                 cells[row][col]->clear();
+                cells[row][col]->setReadOnly(false); // Allow input in empty cells
             }
         }
     }
 
     statusLabel->setText("Sudoku Generated!");
 }
+
 void MainWindow::solveSudoku() {
+
+    if (!generated) {
+        statusLabel->setText("Generate a board first!");
+        return;
+    }
+    
     Solver solver;
     solver.solveSudoku(board);              // we pass the generated board to auto solve. (we will have to change the logic by a huge extent once we make 
                                             // cellChanged function work next) :skull:
@@ -83,6 +98,9 @@ void MainWindow::solveSudoku() {
     }
 
     statusLabel->setText("Sudoku Solved!");
+
+    generated = false;
+    solveButton->setEnabled(false);
 }
 
 void MainWindow::cellChanged(){
