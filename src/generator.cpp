@@ -11,9 +11,9 @@ void Generator::generateSudoku(std::array<std::array<int, 9>, 9>& outBoard, Diff
 
     int clues;
     switch (difficulty) {
-        case Difficulty::EASY: clues = 40; break;
-        case Difficulty::MEDIUM: clues = 30; break;
-        case Difficulty::HARD: clues = 20; break;
+        case Difficulty::EASY: clues = 30; break;
+        case Difficulty::MEDIUM: clues = 20; break;
+        case Difficulty::HARD: clues = 15; break;
     }
                         // how many clues we leave depending upon the difficulty
 

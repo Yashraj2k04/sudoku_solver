@@ -14,9 +14,11 @@ class MainWindow : public QMainWindow{          // MainWindow inherits QMainWind
 
     public:
         MainWindow(QWidget *parent = nullptr);  //generic constructor , it has no parent
+
+        void setHints(int hints);  // to set total hints
     
     private slots:                              //private slots declare functions that'll be connected to signals
-        void generateSudoku();                  //to generate sudoku
+        void generateSudoku(int hints);                  //to generate sudoku
         void solveSudoku();                     // to solve the board for da noobs
         void cellChanged();                     //validate the board when user inputs in a cell
     
@@ -31,6 +33,10 @@ class MainWindow : public QMainWindow{          // MainWindow inherits QMainWind
         void setupUI();                         //setup the ui / load the window components
         void updateBoardFromUI();               
         void updateUIFromBoard();
+
+        int currentHints;
+
+
 
 
         std::array<std::array<int, 9>, 9> board;

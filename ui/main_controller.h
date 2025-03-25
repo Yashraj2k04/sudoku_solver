@@ -9,6 +9,7 @@
 #include <QWidget>
 #include "main_menu.h"
 #include "main_window.h"
+#include "difficulty.h"
 
 class MainController : public QWidget {         
     Q_OBJECT        //moc i suppose :(
@@ -20,8 +21,10 @@ private:
     QStackedWidget *stackedWidget;
     MainMenu *mainMenu;
     MainWindow *mainWindow;
+    Difficulty *difficultyScreen;
 
     void setupConnections();
+    void setupDifficultyConnections();
 };
 
 #endif 

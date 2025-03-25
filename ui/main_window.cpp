@@ -51,7 +51,7 @@ void MainWindow::setupUI(){
     mainLayout->addWidget(statusLabel);
 
 
-    connect(generateButton, &QPushButton::clicked, this, &MainWindow::generateSudoku);
+    connect(generateButton, &QPushButton::clicked, this, [this]() { generateSudoku(currentHints); }); //added lambda
     connect(solveButton, &QPushButton::clicked, this, &MainWindow::solveSudoku);
     // same story, signal sent from  button saying it is clicked, this window recieves it and calls its respective function.
 
@@ -59,21 +59,33 @@ void MainWindow::setupUI(){
 
 }
 
-void MainWindow::generateSudoku() {
+void MainWindow::setHints(int hints) {
+    currentHints = hints;
+}
+
+void MainWindow::generateSudoku(int hints) {
+    currentHints = hints;
     generated = true;
     solveButton->setEnabled(true);
     Generator generator;
-    generator.generateSudoku(board, Difficulty::EASY);
 
-    // Update the UI
+
+    Difficulty difficulty;
+    if (hints == 30) difficulty = Difficulty::EASY;
+    else if (hints == 20) difficulty = Difficulty::MEDIUM;
+    else difficulty = Difficulty::HARD;
+
+    generator.generateSudoku(board, difficulty);
+
+    // updating the ui
     for (int row = 0; row < 9; ++row) {
         for (int col = 0; col < 9; ++col) {
             if (board[row][col] != 0) {
                 cells[row][col]->setText(QString::number(board[row][col]));
-                cells[row][col]->setReadOnly(true);  // Ensure pre-filled cells are locked
+                cells[row][col]->setReadOnly(true);  // dont want user to change the prefilled, puzzle board
             } else {
                 cells[row][col]->clear();
-                cells[row][col]->setReadOnly(false); // Allow input in empty cells
+                cells[row][col]->setReadOnly(false); // else let the user change the cells.
             }
         }
     }
