@@ -10,9 +10,9 @@
 #include "main_menu.h"
 #include "main_window.h"
 #include "difficulty.h"
-
+#include "login.h"
 class MainController : public QWidget {         
-    Q_OBJECT        //moc i suppose :(
+    Q_OBJECT        //moc i suppose :( 
 
 public:
     explicit MainController(QWidget *parent = nullptr);
@@ -22,9 +22,12 @@ private:
     MainMenu *mainMenu;
     MainWindow *mainWindow;
     Difficulty *difficultyScreen;
+    Login *loginScreen;
 
     void setupConnections();
     void setupDifficultyConnections();
+
+    bool loginStatus;
 };
 
 #endif 

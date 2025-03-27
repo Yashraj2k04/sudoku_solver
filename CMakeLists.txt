@@ -13,6 +13,7 @@ set(SOURCES
     ui/main_menu.cpp
     ui/main_controller.cpp
     ui/difficulty.cpp
+    ui/login.cpp
 
 )                           #our source files, these three will be stored in SOURCES variable predifined by cmake
 
@@ -23,7 +24,8 @@ qt5_wrap_cpp(MOC_SOURCES
             ui/main_window.h
             ui/main_menu.h
             ui/main_controller.h
-            ui/difficulty.h)
+            ui/difficulty.h
+            ui/login.h)
                                        #header files associated with the qt widgets that are used anywhere in our code
                                         # threw a lotta errors when i forgot to include the macro (Q_OBJECT is macro or moc)
 
