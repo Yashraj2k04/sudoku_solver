@@ -24,6 +24,7 @@ MainController::MainController(QWidget *parent) : QWidget(parent), loginStatus(f
 
     setupConnections();
     setupDifficultyConnections();
+    setupLoginConnections();
 
     stackedWidget->setCurrentWidget(mainMenu);
 
@@ -33,16 +34,39 @@ MainController::MainController(QWidget *parent) : QWidget(parent), loginStatus(f
 // main window connections
 void MainController::setupConnections() {
     connect(mainMenu, &MainMenu::guestPlayRequested, [this]() {
-        stackedWidget->setCurrentWidget(difficultyScreen);  // Show difficulty screen first
+        if (loginStatus) {                  //kinda tuff. okay, so dont get confused by the 'guestPlayRequested' as it is only the name of the signal
+                                            // if loginStatus is true, it will read 'Logout' in game. so when we press 'Logout', it sets the loginStatus
+                                            // to be false, and updates what the buttons read now by calling the updateButtons in mainMenu.
+            loginStatus = false;
+            mainMenu->updateButtons(false); // Reset button text when logged out
+            stackedWidget->setCurrentWidget(mainMenu); // Go back to main menu
+        } else {
+            stackedWidget->setCurrentWidget(difficultyScreen); // Guest play
+        }
     });
 
-    connect(mainMenu, &MainMenu::loginRequested, [this](){
-        stackedWidget->setCurrentWidget(loginScreen);
-    } );
-
+    connect(mainMenu, &MainMenu::loginRequested, [this]() {
+        if (loginStatus) {
+            stackedWidget->setCurrentWidget(difficultyScreen); // Already logged in, go to difficulty
+        } else {
+            stackedWidget->setCurrentWidget(loginScreen); // Not logged in, show login screen
+        }
+    });
 }
 
 
+//login screen connections
+void MainController::setupLoginConnections() {
+    connect(loginScreen, &Login::backRequested, [this]() {      //we connect login screen l
+        stackedWidget->setCurrentWidget(mainMenu);
+    });
+
+    connect(loginScreen, &Login::loginSuccessful, [this]() {
+        loginStatus = true;
+        mainMenu->updateButtons(true); // Update button text after login
+        stackedWidget->setCurrentWidget(mainMenu);
+    });
+}
 
 // difficulty screen connections
 void MainController::setupDifficultyConnections() {

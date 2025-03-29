@@ -38,3 +38,14 @@ void MainMenu::setupUI() {
     mainLayout->addLayout(bottomLayout);
     connect(settingsButton, &QPushButton::clicked, this, &MainMenu::settingsRequested);
 }
+
+void MainMenu::updateButtons(bool isLoggedIn) {
+    if (isLoggedIn) {
+        loginButton->setText("Play Game");      //if we're logged in, i want buttons to read play game and logout
+        guestButton->setText("Logout");
+    } else {
+        loginButton->setText("Login");          //else, we can have them as is.
+        guestButton->setText("Play as Guest");  // we need to update functionality as well, it is done in mainController.cpp
+    }
+}
+

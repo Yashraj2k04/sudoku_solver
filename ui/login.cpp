@@ -3,43 +3,83 @@
 #include <QHBoxLayout>
 
 Login::Login(QWidget* parent) : QWidget(parent){
-
     setupUI();
     setupConnections();
-
 }
-void Login::setupUI(){
-
+void Login::setupUI() {
     if (this->layout()) {
-        delete this->layout();  // Remove existing layout to avoid conflicts
+        delete this->layout();
     }
-    //initialize fields.
+
+    // Initialize fields
     usernameField = new QLineEdit(this);
-
     passwordField = new QLineEdit(this);
-    // passwordField->setEchoMode(QLineEdit::Password);  // Hide password input
+    passwordField->setEchoMode(QLineEdit::Password);
 
+    // Initialize buttons
+    signInButton = new QPushButton("Sign In", this);
+    signUpButton = new QPushButton("Sign Up", this);
+    backButton = new QPushButton("Back", this);
 
-    //initialize buttons
-    signInButton = new QPushButton("Sign In",this);
-    signUpButton = new QPushButton("Sign Up",this);
+    // Styling for back button
+    backButton->setFixedSize(60, 30);
 
-    //init layouts, add thw widgets to layouts
-    QVBoxLayout *layout = new QVBoxLayout(this);    //main layout that attatches itself to main widget window. thus, we pass 'this'
+    // Top bar layout (back button at the top-left)
+    QHBoxLayout *topBarLayout = new QHBoxLayout();
+    topBarLayout->setContentsMargins(10, 10, 0, 0);
+    topBarLayout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+    topBarLayout->addWidget(backButton);
 
-    layout->addWidget(usernameField);
-    layout->addWidget(passwordField);
+    // VBox for input fields + buttons
+    QVBoxLayout *inputContainer = new QVBoxLayout();
+    inputContainer->setSpacing(20);  // 5px margin between username & password fields
+    inputContainer->setContentsMargins(0, 0, 0, 0);
 
+    inputContainer->addWidget(usernameField);
+    inputContainer->addWidget(passwordField);
 
-    QHBoxLayout *buttonsLayout = new QHBoxLayout(); //not main layout, since vbox is main. we dont pass this here. we dont do that in nested, instead,
-    layout->addLayout(buttonsLayout);               //we add hbox layout to vbox layout. so, when vbox is destroyed (when widget is destroyed), hbox is destroyed with it.
+    // HBox for buttons
+    QHBoxLayout *buttonsLayout = new QHBoxLayout();
     buttonsLayout->addWidget(signInButton);
     buttonsLayout->addWidget(signUpButton);
+    inputContainer->addLayout(buttonsLayout);
 
+    // Wrapper widget for dynamic sizing
+    QWidget *inputWrapper = new QWidget(this);
+    inputWrapper->setLayout(inputContainer);
+    inputWrapper->setMinimumWidth(300);
+    inputWrapper->setMaximumWidth(500);  // Max width limit
+    inputWrapper->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+
+    // Main layout
+    QVBoxLayout *layout = new QVBoxLayout(this);
+    layout->setContentsMargins(0, 0, 0, 0);
+
+    layout->addLayout(topBarLayout, 1);  // Top bar (10% height)
+    layout->addStretch(1);               // Spacer before inputs
+
+    // Dynamic centering with max width limit
+    QHBoxLayout *hCenteringLayout = new QHBoxLayout();
+    hCenteringLayout->addStretch(1);
+    hCenteringLayout->addWidget(inputWrapper, 1);
+    hCenteringLayout->addStretch(1);
+
+    layout->addLayout(hCenteringLayout, 7); // 70% height for input section
+    layout->addStretch(2);                  // 20% bottom padding
+
+    setLayout(layout);
 }
+
+
 void Login::handleLogin(){
-
+    emit loginSuccessful();
 }
-void Login::setupConnections(){
 
+void Login::handleBack(){
+    emit backRequested();
+}
+
+void Login::setupConnections(){
+    connect(signInButton, &QPushButton::clicked, this, &Login::handleLogin);
+    connect(backButton, &QPushButton::clicked, this, &Login::handleBack);
 }

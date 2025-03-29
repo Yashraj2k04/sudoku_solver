@@ -15,7 +15,11 @@ set(SOURCES
     ui/difficulty.cpp
     ui/login.cpp
 
+
 )                           #our source files, these three will be stored in SOURCES variable predifined by cmake
+
+
+
 
 
 find_package(Qt5 COMPONENTS Widgets REQUIRED)
@@ -27,14 +31,23 @@ qt5_wrap_cpp(MOC_SOURCES
             ui/difficulty.h
             ui/login.h)
                                        #header files associated with the qt widgets that are used anywhere in our code
-                                        # threw a lotta errors when i forgot to include the macro (Q_OBJECT is macro or moc)
+                                        # threw a lotta errors when i forgot to include the macro (Q_OBJECT is macro or moc) // okay, MOC is meta-object compiler
+
+
+
+# NEW addition, we add the qtcreator ui files to cmake build so it recognizes it.
+
+
+qt5_wrap_ui(UI_HEADERS ${UI_FILES})  # Generates headers from UI files
+
+include_directories(${CMAKE_SOURCE_DIR}/src)    #include directory from the source (CMakeLists.txt and the folder src )
+include_directories(${CMAKE_SOURCE_DIR}/ui)     #This included the ui folder in the cmake build consideration
 
 
 
 add_executable(SudokuSolver ${SOURCES} ${MOC_SOURCES})     #executable added by cmake, named SudokuSolver (we can compiler and run all the files with ./SudokuSolver)
                                             #what it does is links the object code of all these three files and makes an executable.
-include_directories(${CMAKE_SOURCE_DIR}/src)    #include directory from the source (CMakeLists.txt and the folder src )
-include_directories(${CMAKE_SOURCE_DIR}/ui)     #This included the ui folder in the cmake build consideration
+
 
 
 ### Gotta link qt widget libraries, yeah? 

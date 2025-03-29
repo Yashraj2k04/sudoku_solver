@@ -17,15 +17,18 @@ class Login : public QWidget{
 
     signals:
         void loginSuccessful();             //signal to be emitted upon some action (a function to be called)
+        void backRequested();
 
     private slots:
         void handleLogin();                 //the function that will handle the signal 
+        void handleBack();
 
     private:
         QLineEdit *usernameField;
         QLineEdit *passwordField;
         QPushButton *signInButton;
         QPushButton *signUpButton;
+        QPushButton *backButton;
 
         void setupUI();                        //stack the widgets, set up the page 
         void setupConnections();                //

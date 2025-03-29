@@ -13,11 +13,13 @@ class MainMenu : public QWidget{
 
     public:
         explicit MainMenu(QWidget *parent = nullptr);
+        void updateButtons(bool isLoggedIn);
 
     signals:                    //signals we'll be sending on button trigger (basically calling them)
         void loginRequested();
         void guestPlayRequested();
         void settingsRequested();
+        
 
     private:
         QLabel * titleLabel;
@@ -25,7 +27,10 @@ class MainMenu : public QWidget{
         QPushButton *guestButton;
         QPushButton *settingsButton;
 
+
         void setupUI();
+        
+
 
 
 };
