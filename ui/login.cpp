@@ -10,16 +10,65 @@ void Login::setupUI() {
     if (this->layout()) {
         delete this->layout();
     }
+    
 
     // Initialize fields
     usernameField = new QLineEdit(this);
     passwordField = new QLineEdit(this);
     passwordField->setEchoMode(QLineEdit::Password);
+    usernameField->setFixedHeight(usernameField->height() + 25);
+    passwordField->setFixedHeight(passwordField->height() + 25);
+    usernameField->setStyleSheet("font-size: 22px; padding: 5px;");
+    passwordField->setStyleSheet("font-size: 22px; padding: 5px;");
+
+    usernameField->setPlaceholderText("username");
+    passwordField->setPlaceholderText("password");
+
 
     // Initialize buttons
     signInButton = new QPushButton("Sign In", this);
     signUpButton = new QPushButton("Sign Up", this);
     backButton = new QPushButton("Back", this);
+
+    signInButton->setCursor(Qt::PointingHandCursor);
+    signUpButton->setCursor(Qt::PointingHandCursor);
+    backButton->setCursor(Qt::PointingHandCursor); 
+
+    // Styling for buttons
+    signInButton->setStyleSheet(
+        "QPushButton {"
+        "background-color: #4CAF50;"
+        "color: white;"
+        "padding: 10px;"
+        "font-size: 16px;"
+        "border-radius: 20px;"
+        "}"
+        "QPushButton:hover {"
+        "background-color: #388E3C;"
+        "}"
+    );
+    signUpButton->setStyleSheet(
+        "QPushButton {"
+        "background-color: #808080;"
+        "color: white;"
+        "padding: 10px;"
+        "font-size: 16px;"
+        "border-radius: 20px;"
+        "}"
+        "QPushButton:hover {"
+        "background-color: #606060;"
+        "}"
+    );
+    signInButton->setFixedHeight(signInButton->height() + 20);
+    signUpButton->setFixedHeight(signUpButton->height() + 20);
+
+    backButton->setStyleSheet("background-color:transparent;"
+                              "color:#000000;"
+                              "font-size:15px;"
+                              "border: none;"
+                              "padding: 5px;");
+
+    
 
     // Styling for back button
     backButton->setFixedSize(60, 30);
@@ -69,6 +118,7 @@ void Login::setupUI() {
 
     setLayout(layout);
 }
+
 
 
 void Login::handleLogin(){
