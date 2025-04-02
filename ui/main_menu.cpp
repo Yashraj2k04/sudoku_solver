@@ -49,3 +49,4 @@ void MainMenu::updateButtons(bool isLoggedIn) {
     }
 }
 
+

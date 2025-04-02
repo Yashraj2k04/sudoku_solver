@@ -1,6 +1,7 @@
 #include "difficulty.h"
-#include <QFont>                
-#include <QGridLayout>
+#include <QFont>
+#include <QHBoxLayout>
+#include <QVBoxLayout>
 
 Difficulty::Difficulty(QWidget *parent) : QWidget(parent) {
     setupUI();
@@ -8,6 +9,8 @@ Difficulty::Difficulty(QWidget *parent) : QWidget(parent) {
 }
 
 void Difficulty::setupUI() {
+    setStyleSheet("background-color: #f0f0f0;");
+
     QFont buttonFont;
     buttonFont.setBold(true);
 
@@ -16,18 +19,53 @@ void Difficulty::setupUI() {
     hardButton = new QPushButton("Hard", this);
     backButton = new QPushButton("Back", this);
 
+    QString buttonStyle =
+        "QPushButton {"
+        "background-color:rgb(124, 255, 128);"
+        "color: white;"
+        "font-size: 18px;"
+        "border-radius: 15px;"
+        "padding: 10px;"
+        "min-width: 400px;" 
+        "min-height: 50px;"
+        "max-width: 600px;"  
+        "max-height: 50px;"
+        "margin-bottom: 10px;" 
+        "}"
+        "QPushButton:hover {"
+        "background-color:rgb(148, 255, 153);"
+        "}";
+
+    easyButton->setStyleSheet(buttonStyle);
+    mediumButton->setStyleSheet(buttonStyle);
+    hardButton->setStyleSheet(buttonStyle);
+    backButton->setStyleSheet("background-color:transparent;"
+        "color:#000000;"
+        "font-size:15px;"
+        "border: none;"
+        "padding: 5px;"); // did it same as the back button in login page
+
+
     easyButton->setFont(buttonFont);
     mediumButton->setFont(buttonFont);
     hardButton->setFont(buttonFont);
-    backButton->setFont(buttonFont);
 
-    QGridLayout *layout = new QGridLayout(this);
-    layout->addWidget(backButton, 0, 0, Qt::AlignLeft);
-    layout->addWidget(easyButton, 1, 1, Qt::AlignCenter);       //adding buttons to grid layout
-    layout->addWidget(mediumButton, 2, 1, Qt::AlignCenter);
-    layout->addWidget(hardButton, 3, 1, Qt::AlignCenter);
+    //vbox to containerize the difficulty selection buttons
+    QVBoxLayout *vbox = new QVBoxLayout();
+    vbox->setAlignment(Qt::AlignCenter);
+    vbox->addWidget(easyButton);
+    vbox->addWidget(mediumButton);
+    vbox->addWidget(hardButton);
 
-    setLayout(layout);
+    //hbox to set back button at the top left
+    QHBoxLayout *hbox = new QHBoxLayout();
+    hbox->addWidget(backButton, 0, Qt::AlignLeft);
+
+    //main layout. we add hbox first to set back button at top left, and vbox for buttons to be in middle
+    QVBoxLayout *mainLayout = new QVBoxLayout(this);
+    mainLayout->addLayout(hbox);
+    mainLayout->addLayout(vbox);
+    setLayout(mainLayout);
 }
 
 void Difficulty::setupConnections() {
@@ -44,14 +82,4 @@ void Difficulty::setupConnections() {
         emit difficultySelected(15);
     });
     connect(backButton, &QPushButton::clicked, this, &Difficulty::backToMainMenu);
-
-
-            //kinda dank. lets see whats bussin here.
-
-            //connect is a fn that connects a signal to a slot.
-            //here, say medium button.
-            // it emits a signal 'clicked'
-            // 'this' refers to the current instance of the difficulty class
-            //[this]() { emit mediumSelected(20) we call this a lambda function (kind like arrow fn in js???), it captures the surrounding scope '[this]'
-            // here, the lambda emits that mediumSelected signal with a parameter of 20
 }

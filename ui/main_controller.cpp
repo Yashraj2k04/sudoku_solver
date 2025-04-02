@@ -52,6 +52,9 @@ void MainController::setupConnections() {
             stackedWidget->setCurrentWidget(loginScreen); // Not logged in, show login screen
         }
     });
+    connect(mainWindow, &MainWindow::backToDifficultyScreen, [this](){
+        stackedWidget->setCurrentWidget(difficultyScreen);
+    });
 }
 
 

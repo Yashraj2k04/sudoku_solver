@@ -16,6 +16,9 @@ class MainWindow : public QMainWindow{          // MainWindow inherits QMainWind
         MainWindow(QWidget *parent = nullptr);  //generic constructor , it has no parent
 
         void setHints(int hints);  // to set total hints
+
+    signals:
+        void backToDifficultyScreen();
     
     private slots:                              //private slots declare functions that'll be connected to signals
         void generateSudoku(int hints);                  //to generate sudoku
@@ -27,6 +30,7 @@ class MainWindow : public QMainWindow{          // MainWindow inherits QMainWind
         QGridLayout *gridLayout;                
         QPushButton *solveButton;
         QPushButton *generateButton;
+        QPushButton *backButton;
         QLineEdit *cells[9][9];
         QLabel *statusLabel;
 
