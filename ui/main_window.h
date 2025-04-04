@@ -1,50 +1,55 @@
-#ifndef MAIN_WINDOW_H                               //if not defined the main_window_h, 
-#define MAIN_WINDOW_H                               // then only define main_window_h, skip to #endif otherwise
+// i nearly died tryna write the input logic from 3x3
 
-#include <QMainWindow>                  //Main window 
-#include <QGridLayout>                  // grid layout for sudoku grid 9x9
-#include <QLineEdit>                    // input fields for each cell
-#include <QPushButton>                  // pushable buttons for solve button, generate button etc
-#include <QLabel>                       // just a label, can write sudoku # or timer or something
+#ifndef MAIN_WINDOW_H       // include guard, like pragma once
+#define MAIN_WINDOW_H
 
-#include<array>
+#include <QMainWindow>
+#include <QGridLayout>
+#include <QLineEdit>
+#include <QPushButton>
+#include <QLabel>
+#include <QEvent>
+#include <array>
 
-class MainWindow : public QMainWindow{          // MainWindow inherits QMainWindow
-    Q_OBJECT                                                        // ESSENTIAL !!! this is how Qt widgets (objects??) communicate with eachother.
+class MainWindow : public QMainWindow {
+    Q_OBJECT                                            //Object that communicates with other windows
 
-    public:
-        MainWindow(QWidget *parent = nullptr);  //generic constructor , it has no parent
+public:
+    MainWindow(QWidget *parent = nullptr);              // sets difficulty level
+    void setHints(int hints);
 
-        void setHints(int hints);  // to set total hints
+signals:
+    void backToDifficultyScreen();                      // signal to take us back to select difficulty
 
-    signals:
-        void backToDifficultyScreen();
-    
-    private slots:                              //private slots declare functions that'll be connected to signals
-        void generateSudoku(int hints);                  //to generate sudoku
-        void solveSudoku();                     // to solve the board for da noobs
-        void cellChanged();                     //validate the board when user inputs in a cell
-    
-    private:
-        QWidget *centralWidget;                 //pointers to widgets  here, nothing out of the ordinary
-        QGridLayout *gridLayout;                
-        QPushButton *solveButton;
-        QPushButton *generateButton;
-        QPushButton *backButton;
-        QLineEdit *cells[9][9];
-        QLabel *statusLabel;
+protected:
+    bool eventFilter(QObject *obj, QEvent *event) override;     //method of QOBJECT. did so that we can intercept event click or changed before it reaches the obj
+                                                                // here we do it to store the selected cell.
+                                                                // if i didnt do that, it was changing the last editable cell insted of the selected cell
+                                                                // this makes it wait for the qline to be edited before it process ui change
+private slots:
+    void generateSudoku(int hints);             // slots that sends signals to perform some action
+    void solveSudoku();
+    void cellChanged();
 
-        void setupUI();                         //setup the ui / load the window components
-        void updateBoardFromUI();               
-        void updateUIFromBoard();
+private:
+    QWidget *centralWidget;
+    QGridLayout *gridLayout;
+    QPushButton *solveButton;
+    QPushButton *generateButton;
+    QPushButton *backButton;
+    QLineEdit *cells[9][9];
+    QLabel *statusLabel;
 
-        int currentHints;
+    QGridLayout *inputGridLayout;              // the 3x3 input grid 
+    QLineEdit *selectedCell = nullptr;          // cell that we selected to edit
 
+    void setupUI();
+    void updateBoardFromUI();
+    void updateUIFromBoard();
 
-
-
-        std::array<std::array<int, 9>, 9> board;
-        bool generated = false;
+    int currentHints;
+    std::array<std::array<int, 9>, 9> board;
+    bool generated = false;
 };
 
 #endif
