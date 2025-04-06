@@ -26,6 +26,7 @@ protected:
                                                                 // here we do it to store the selected cell.
                                                                 // if i didnt do that, it was changing the last editable cell insted of the selected cell
                                                                 // this makes it wait for the qline to be edited before it process ui change
+                                                                QString baseCellStyle(int row, int col);
 private slots:
     void generateSudoku(int hints);             // slots that sends signals to perform some action
     void solveSudoku();
