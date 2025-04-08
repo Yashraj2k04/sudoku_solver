@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.10) #minimun CMake version needed
 
 project(SudokuSolver VERSION 1.0 LANGUAGES CXX)  #project name is SudokuSolver, its version is  1.0, perchance we need to launch more versions, language is cpp (idk why it has to be CXX)
 
-set(CMAKE_CXX_STANDARD 11) #cpp version is 11
+set(CMAKE_CXX_STANDARD 17) #cpp version is 17
 set(CMAKE_CXX_STANDARD_REQUIRED True) #must need cpp version 11 atleast
 
 set(SOURCES

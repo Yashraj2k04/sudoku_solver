@@ -6,50 +6,51 @@
 #include <generator.h>
 #include <solver.h>
 #include <QIntValidator>
+#include <QSet>
+#include <QPair>
+#include <QHash>
+
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     setupUI();
 }
 
 void MainWindow::setupUI() {
-    centralWidget = new QWidget(this);      //main widget
+    centralWidget = new QWidget(this);
     setCentralWidget(centralWidget);
-
-    setStyleSheet("background-color: #f0f0f0;");        //bg white
+    setStyleSheet("background-color: #f0f0f0;");
 
     backButton = new QPushButton("Back", this);
     backButton->setStyleSheet("background-color:transparent;"
                               "color:#000000;"
                               "font-size:15px;"
-                              "border: none;"   
-                              "padding: 5px;");     //making back button bland.
+                              "border: none;"
+                              "padding: 5px;");
     QHBoxLayout *backButtonLayout = new QHBoxLayout();
-    backButtonLayout->addWidget(backButton, 0, Qt::AlignLeft);  // back button to stick at top left of the screen (main widget)
+    backButtonLayout->addWidget(backButton, 0, Qt::AlignLeft);  //back button at top left
 
-    statusLabel = new QLabel("Difficulty: ", this);             //difficulty label to display difficulty
+    statusLabel = new QLabel("Difficulty: ", this);
     statusLabel->setStyleSheet("font-size: 20px; font-weight: bold;");
     QHBoxLayout *difficultyLayout = new QHBoxLayout();
     difficultyLayout->addWidget(statusLabel, 0, Qt::AlignCenter);
+    //difficulty label at center
 
-
-    // grid layout 9x9.
     gridLayout = new QGridLayout();
     gridLayout->setSpacing(0);
-    gridLayout->setContentsMargins(0, 0, 0, 0);
-    
-    int cellSize = 54; // coz borders will be wider at every 3rd cell
-    
+    gridLayout->setContentsMargins(0, 0, 0, 0); //9x9 grid for main board
+
+    int cellSize = 54;
+
     for (int row = 0; row < 9; ++row) {
         for (int col = 0; col < 9; ++col) {
             QLineEdit *cell = new QLineEdit(this);
-            cell->setFixedSize(cellSize, 50);   
+            cell->setFixedSize(cellSize, 50);
             cell->setAlignment(Qt::AlignCenter);
             cell->setMaxLength(1);
-            cell->setValidator(new QIntValidator(1, 9, this)); // makes it such that only 1-9 can be input (if the input is given from keyboard)
+            cell->setValidator(new QIntValidator(1, 9, this));      //lets only ints from 1 to 9 be entered in board
             cell->installEventFilter(this);
             cells[row][col] = cell;
-    
-            // Set custom borders per cell
+
             QString borderStyle;
             borderStyle += "QLineEdit {"
                            "background-color: #ffffff;"
@@ -59,24 +60,21 @@ void MainWindow::setupUI() {
                            "border-width: 1px;"
                            "border-color: #000000;"
                            "margin: 0px;"
-                           "padding: 0px;";
-    
-            if (row % 3 == 0) borderStyle += "border-top-width: 4px;";      //normal styling for each, thicker borders for every 3rd cell
+                           "padding: 0px;"; //normal board style
+
+            if (row % 3 == 0) borderStyle += "border-top-width: 4px;";
             if (col % 3 == 0) borderStyle += "border-left-width: 4px;";
             if (col == 8) borderStyle += "border-right-width: 4px;";
-            if (row == 8) borderStyle += "border-bottom-width: 4px;";
-    
-            borderStyle += "}";     // addin enclosing braces
-    
+            if (row == 8) borderStyle += "border-bottom-width: 4px;";       //okay, kinda slick. we bolden every third row and column intersection to highlight 3x3 grids
+
+            borderStyle += "}";
+
             cell->setStyleSheet(borderStyle);
-    
+            cell->setReadOnly(true);
+
             gridLayout->addWidget(cell, row, col);
-    
-            if (!cell->text().isEmpty()) {
-                cell->setReadOnly(true);                // making pregenerated cells readable only
-            } else {
-                connect(cell, &QLineEdit::textChanged, this, &MainWindow::cellChanged);     // or connect the cell slot to signal this window when its text changes to call the cellChanged function
-            }
+
+            connect(cell, &QLineEdit::textChanged, this, &MainWindow::cellChanged);
         }
     }
 
@@ -99,57 +97,108 @@ void MainWindow::setupUI() {
     generateButton->setStyleSheet(buttonStyle);
     solveButton->setStyleSheet(buttonStyle);
 
+    generateButton->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    solveButton->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);     //done so as to make them resize as per the 9x9 grid length
+    
 
-    generateButton->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);      //expanding buttons
-    solveButton->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-
-    QHBoxLayout *buttonLayout = new QHBoxLayout();      
+    QHBoxLayout *buttonLayout = new QHBoxLayout();
     buttonLayout->setSpacing(10);
     buttonLayout->addWidget(generateButton);
-    buttonLayout->addWidget(solveButton);       //hbox for solve and generate buttons
+    buttonLayout->addWidget(solveButton);
 
     QWidget *buttonContainer = new QWidget(this);
     buttonContainer->setLayout(buttonLayout);
-    buttonContainer->setFixedWidth(490);        // i approximated the width to be 490 ish, couldnt get both hbox and grid for 3x3 input to both have varying width to align with board width
+    buttonContainer->setFixedWidth(490);
 
-    solveButton->setEnabled(false);
+    solveButton->setEnabled(false);     //set to false, disables user from pressing solve button if board is not generated yet
 
     inputGridLayout = new QGridLayout();
-   
-for (int i = 1; i <= 9; ++i) {
-    QPushButton *btn = new QPushButton(QString::number(i), this);
-    btn->setFixedSize(156, 60);  
 
-    btn->setStyleSheet(
+    for (int i = 1; i <= 9; ++i) {
+        QPushButton *btn = new QPushButton(QString::number(i), this);
+        btn->setFixedSize(156, 60);
+
+        btn->setStyleSheet(
+            "QPushButton {"
+            "background-color:rgb(245, 129, 20);"
+            "color: white;"
+            "font-size: 18px;"
+            "border-radius: 1px;"
+            "padding: 14px;"
+            "}"
+            "QPushButton:hover {"
+            "background-color: #1976D2;"
+            "}"
+        );      //3x3 input grid for 1-9, i really need to change the color scheme here
+
+        connect(btn, &QPushButton::clicked, this, [this, i]() {
+            if (selectedCell && !selectedCell->isReadOnly()) {      // if selected cell exists and its not a read only (pregenerated)
+                int row = -1, col = -1;                 //init rows and cols var
+                for (int r = 0; r < 9; ++r) {
+                    for (int c = 0; c < 9; ++c) {
+                        if (cells[r][c] == selectedCell) {      
+                            row = r;
+                            col = c;
+                            break;
+                        }
+                    }
+                    if (row != -1) break;
+                }
+
+                if (row != -1 && col != -1) {
+                    QString prev = selectedCell->text();
+                    moveStack.push({row, col, prev});       //push prev value to move stack so we can revert to it sequentially
+                    selectedCell->setText(QString::number(i));  //set number we had from input grid
+                }
+            }
+        });
+
+        int row = (i - 1) / 3;
+        int col = (i - 1) % 3;
+        inputGridLayout->addWidget(btn, row, col);
+    }
+
+    //revert Button
+    QPushButton *revertButton = new QPushButton("Revert", this);
+    revertButton->setFixedSize(150, 50);
+    revertButton->setStyleSheet(
         "QPushButton {"
-        "background-color:rgb(245, 129, 20);"
+        "background-color: #e53935;"
         "color: white;"
         "font-size: 18px;"
-        "border-radius: 1px;"
-        "padding: 14px;"
+        "border-radius: 10px;"
+        "padding: 10px;"
         "}"
         "QPushButton:hover {"
-        "background-color: #1976D2;"
+        "background-color: #b71c1c;"
         "}"
     );
 
-    connect(btn, &QPushButton::clicked, this, [this, i]() {
-        if (selectedCell && !selectedCell->isReadOnly()) {
-            selectedCell->setText(QString::number(i));
+    connect(revertButton, &QPushButton::clicked, this, [this]() {
+        if (!moveStack.empty()) {
+            auto [row, col, prev] = moveStack.top();
+            moveStack.pop();
+            cells[row][col]->setText(prev);
         }
-    });     //changes qline value of selected cell of selected grid to be the button's number value when selected and clicked
+    });
+    
 
-    int row = (i - 1) / 3;
-    int col = (i - 1) % 3;
-    inputGridLayout->addWidget(btn, row, col);
-}
+    QHBoxLayout *revertLayout = new QHBoxLayout();
+    revertLayout->addStretch();
+    revertLayout->addWidget(revertButton);
+    revertLayout->addStretch();
+
+    QVBoxLayout *inputGridWithUndo = new QVBoxLayout();
+    inputGridWithUndo->addLayout(inputGridLayout);
+    inputGridWithUndo->addSpacing(10);
+    inputGridWithUndo->addLayout(revertLayout);
 
     QWidget *inputContainer = new QWidget(this);
     QHBoxLayout *inputWrapper = new QHBoxLayout(inputContainer);
     inputWrapper->addStretch();
-    inputWrapper->addLayout(inputGridLayout);
+    inputWrapper->addLayout(inputGridWithUndo);
     inputWrapper->addStretch();
-    inputContainer->setFixedWidth(490);  // same approximation as mentioned above in case of hbox
+    inputContainer->setFixedWidth(490);
 
     QVBoxLayout *containerLayout = new QVBoxLayout();
     containerLayout->setAlignment(Qt::AlignTop | Qt::AlignHCenter);
@@ -157,47 +206,43 @@ for (int i = 1; i <= 9; ++i) {
     containerLayout->addLayout(gridLayout);
     containerLayout->addWidget(buttonContainer);
     containerLayout->addStretch();
-    containerLayout->addWidget(inputContainer);     //adds every other layout to the container
+    containerLayout->addWidget(inputContainer);
 
     QVBoxLayout *mainLayout = new QVBoxLayout(centralWidget);
     mainLayout->addLayout(backButtonLayout);
     mainLayout->addLayout(containerLayout);
 
-    connect(backButton, &QPushButton::clicked, this, &MainWindow::backToDifficultyScreen);      //back to diff screen
-    connect(generateButton, &QPushButton::clicked, this, [this]() { generateSudoku(currentHints); });   //generate board as according to the chosen difficulty
-    connect(solveButton, &QPushButton::clicked, this, &MainWindow::solveSudoku);        // sovle button
+    connect(backButton, &QPushButton::clicked, this, &MainWindow::backToDifficultyScreen);
+    connect(generateButton, &QPushButton::clicked, this, [this]() { generateSudoku(currentHints); });
+    connect(solveButton, &QPushButton::clicked, this, &MainWindow::solveSudoku);
 }
 
 
+
 bool MainWindow::eventFilter(QObject *obj, QEvent *event) {
-    if (event->type() == QEvent::MouseButtonPress) {
+    if (event->type() == QEvent::MouseButtonPress && generated) {       //only selectable if board was generated.
         for (int row = 0; row < 9; ++row) {
             for (int col = 0; col < 9; ++col) {
-                if (obj == cells[row][col]) {
+                if (obj == cells[row][col]) {       // if obj that sent the sent the signal MouseButtonPress was this col and row
 
-                    // Reset previous cell's border
-                    QString prevStyle = cells[row][col]->styleSheet();
-                    QString baseStyle = prevStyle;
-
-                    baseStyle = baseStyle.replace(QRegularExpression("border: \\d+px solid blue;"), "");
-
-                    // Reset all cells' styles (to be safe)
+                    // Clear previous blue borders from ALL cells, the highlighted cell is reverted back to normal
                     for (int r = 0; r < 9; ++r) {
                         for (int c = 0; c < 9; ++c) {
                             QString style = cells[r][c]->styleSheet();
-                            style = style.replace(QRegularExpression("border: \\d+px solid blue;"), "");
+                            style = style.replace("border: 2px solid blue;", "");       
                             cells[r][c]->setStyleSheet(style);
                         }
                     }
 
-                    // Highlight current cell
-                    QString selectedStyle = cells[row][col]->styleSheet();
-                    selectedStyle += "border: 2px solid blue;";
-                    cells[row][col]->setStyleSheet(selectedStyle);
+                    // and make blue border for the selected cell
+                    QString style = cells[row][col]->styleSheet();
+                    if (!style.contains("border: 2px solid blue;")) {
+                        style = style.replace("}", "border: 2px solid blue;}");
+                        cells[row][col]->setStyleSheet(style);
+                    }
 
-                    // Most important: assign the cell so input grid knows what to update
-                    selectedCell = cells[row][col];
-
+ 
+                    selectedCell = cells[row][col];        // set the value that is to be passed
                     return true;
                 }
             }
@@ -205,6 +250,7 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event) {
     }
     return QMainWindow::eventFilter(obj, event);
 }
+
 
 QString MainWindow::baseCellStyle(int row, int col) {
     QString style =
@@ -223,9 +269,7 @@ QString MainWindow::baseCellStyle(int row, int col) {
     if (col == 8)     style += "border-right-width: 4px;";
 
     return style;
-}
-
-
+}       // as discussed above
 
 void MainWindow::setHints(int hints) {
     currentHints = hints;
@@ -235,12 +279,12 @@ void MainWindow::setHints(int hints) {
     else difficultyText = "Difficulty: Hard";
 
     statusLabel->setText(difficultyText);
-}
+}       // difficulty label set as per the selected difficulty
 
 void MainWindow::generateSudoku(int hints) {
     currentHints = hints;
-    generated = true;
-    solveButton->setEnabled(true);
+    generated = true;       
+    solveButton->setEnabled(true);      // generated is true, now enable solve button
     Generator generator;
 
     Difficulty difficulty;
@@ -255,10 +299,14 @@ void MainWindow::generateSudoku(int hints) {
             if (board[row][col] != 0) {
                 cells[row][col]->setText(QString::number(board[row][col]));
                 cells[row][col]->setReadOnly(true);
+                cells[row][col]->setStyleSheet(baseCellStyle(row, col) + "background-color:rgb(236, 236, 236);"); 
             } else {
                 cells[row][col]->clear();
                 cells[row][col]->setReadOnly(false);
+                cells[row][col]->setStyleSheet(baseCellStyle(row, col) + "background-color: #ffffff;");
             }
+            // if a cell was pregenerated, make its background grey to make it distinguishable from other editable cells
+            
         }
     }
 }
@@ -276,9 +324,60 @@ void MainWindow::solveSudoku() {
     }
 
     generated = false;
-    solveButton->setEnabled(false);
+    solveButton->setEnabled(false);     //solves board. sets generated to false, disables enabled solve button
 }
 
 void MainWindow::cellChanged() {
-    // Placeholder for validation or other logic
+    if (!generated) return;
+
+    // Clear all current highlights
+    for (int row = 0; row < 9; ++row) {
+        for (int col = 0; col < 9; ++col) {
+            QString style = baseCellStyle(row, col);
+            if (cells[row][col]->isReadOnly()) {
+                style.replace("background-color: #ffffff;", "background-color: #d3d3d3;");
+            }
+            cells[row][col]->setStyleSheet("QLineEdit {" + style + "}");
+        }
+    }
+
+    // Track conflicting cells
+    QSet<QPair<int, int>> conflictCells;
+
+    for (int row = 0; row < 9; ++row) {
+        for (int col = 0; col < 9; ++col) {
+            QString val = cells[row][col]->text();
+            if (val.isEmpty()) continue;
+            for (int c = 0; c < 9; ++c) {                       //check row
+                if (c != col && cells[row][c]->text() == val) {
+                    conflictCells.insert({row, col});
+                    conflictCells.insert({row, c});
+                }
+            }
+            for (int r = 0; r < 9; ++r) {                       //check col
+                if (r != row && cells[r][col]->text() == val) {
+                    conflictCells.insert({row, col});
+                    conflictCells.insert({r, col});
+                }
+            }
+            int startRow = (row / 3) * 3;
+            int startCol = (col / 3) * 3;
+            for (int r = startRow; r < startRow + 3; ++r) {     //check 3x3 sub-grid
+                for (int c = startCol; c < startCol + 3; ++c) {
+                    if ((r != row || c != col) && cells[r][c]->text() == val) {
+                        conflictCells.insert({row, col});
+                        conflictCells.insert({r, c});
+                    }
+                }
+            }
+        }
+    } 
+    for (const auto &cell : conflictCells) {
+        int row = cell.first;
+        int col = cell.second;
+        QString style = baseCellStyle(row, col);
+        style.replace(QRegularExpression("background-color: #[0-9a-fA-F]{6};"), "background-color:rgb(253, 72, 72);");  // red highlight for conflicting cells which are present.
+        cells[row][col]->setStyleSheet("QLineEdit {" + style + "}");
+    }
 }
+

@@ -10,6 +10,8 @@
 #include <QLabel>
 #include <QEvent>
 #include <array>
+#include <stack>
+#include <tuple>
 
 class MainWindow : public QMainWindow {
     Q_OBJECT                                            //Object that communicates with other windows
@@ -51,6 +53,7 @@ private:
     int currentHints;
     std::array<std::array<int, 9>, 9> board;
     bool generated = false;
+    std::stack<std::tuple<int, int, QString>> moveStack;
 };
 
 #endif
