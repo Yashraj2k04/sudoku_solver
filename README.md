@@ -1,6 +1,4 @@
-update cmake version to 17, structured bindings are only availabe for gnu++17 
+disabled keyboard input completey, was messing up the moveStack reads.
 
-this warning to switch to cmake 17 was raised after adding stack to maintain reverting history.
+changed status label to read solved when board is solved (either by user or by solve button)
 
-added playable logic. will check if board is solved by user next.
-    planning on adding timer too.

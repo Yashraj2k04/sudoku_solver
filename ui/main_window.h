@@ -54,6 +54,9 @@ private:
     std::array<std::array<int, 9>, 9> board;
     bool generated = false;
     std::stack<std::tuple<int, int, QString>> moveStack;
+
+
+    bool isBoardCorrectlySolved();          // method to check if board is solved.
 };
 
 #endif

@@ -9,7 +9,7 @@
 #include <QSet>
 #include <QPair>
 #include <QHash>
-
+#include <QTimer>
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     setupUI();
@@ -71,12 +71,17 @@ void MainWindow::setupUI() {
 
             cell->setStyleSheet(borderStyle);
             cell->setReadOnly(true);
-
+            QRegExpValidator *emptyValidator = new QRegExpValidator(QRegExp(""), this);     //disabling keyboard input, only play from 3x3 i/p grid lil bro
+            
+            cells[row][col]->setValidator(emptyValidator);
             gridLayout->addWidget(cell, row, col);
 
             connect(cell, &QLineEdit::textChanged, this, &MainWindow::cellChanged);
+            
+            
         }
     }
+
 
     generateButton = new QPushButton("Generate", this);
     solveButton = new QPushButton("Solve", this);
@@ -215,6 +220,7 @@ void MainWindow::setupUI() {
     connect(backButton, &QPushButton::clicked, this, &MainWindow::backToDifficultyScreen);
     connect(generateButton, &QPushButton::clicked, this, [this]() { generateSudoku(currentHints); });
     connect(solveButton, &QPushButton::clicked, this, &MainWindow::solveSudoku);
+    
 }
 
 
@@ -224,6 +230,9 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event) {
         for (int row = 0; row < 9; ++row) {
             for (int col = 0; col < 9; ++col) {
                 if (obj == cells[row][col]) {       // if obj that sent the sent the signal MouseButtonPress was this col and row
+
+                    if (cells[row][col]->isReadOnly())          //we only wanna highlight selectable cells (not pregenerated cells)
+                        return true;
 
                     // Clear previous blue borders from ALL cells, the highlighted cell is reverted back to normal
                     for (int r = 0; r < 9; ++r) {
@@ -325,6 +334,9 @@ void MainWindow::solveSudoku() {
 
     generated = false;
     solveButton->setEnabled(false);     //solves board. sets generated to false, disables enabled solve button
+
+
+    isBoardCorrectlySolved();
 }
 
 void MainWindow::cellChanged() {
@@ -380,4 +392,46 @@ void MainWindow::cellChanged() {
         cells[row][col]->setStyleSheet("QLineEdit {" + style + "}");
     }
 }
+
+
+bool MainWindow::isBoardCorrectlySolved() {
+    // Check if any conflicting cells exist
+    bool hasConflicts = false;
+    for (int row = 0; row < 9; ++row) {
+        for (int col = 0; col < 9; ++col) {
+            if (cells[row][col]->styleSheet() == "background-color: lightcoral;") {
+                hasConflicts = true;
+                break;
+            }
+        }
+        if (hasConflicts) break;
+    }
+
+    // Check if all cells are filled (no empty cells)
+    bool allFilled = true;
+    for (int row = 0; row < 9; ++row) {
+        for (int col = 0; col < 9; ++col) {
+            if (cells[row][col]->text().isEmpty()) {
+                allFilled = false;
+                break;
+            }
+        }
+        if (!allFilled) break;
+    }
+
+    // If no conflicts and all cells are filled, the board is correctly solved
+    if (!hasConflicts && allFilled) {
+        statusLabel->setText("Solved!");
+        return true;
+
+        while (!moveStack.empty()) moveStack.pop();
+
+    }
+
+
+    return false;
+}
+
+
+
 
