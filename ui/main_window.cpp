@@ -283,7 +283,7 @@ QString MainWindow::baseCellStyle(int row, int col) {
 void MainWindow::setHints(int hints) {
     currentHints = hints;
     QString difficultyText;
-    if (hints == 30) difficultyText = "Difficulty: Easy";
+    if (hints == 35) difficultyText = "Difficulty: Easy";
     else if (hints == 20) difficultyText = "Difficulty: Medium";
     else difficultyText = "Difficulty: Hard";
 
@@ -297,7 +297,7 @@ void MainWindow::generateSudoku(int hints) {
     Generator generator;
 
     Difficulty difficulty;
-    if (hints == 30) difficulty = Difficulty::EASY;
+    if (hints == 35) difficulty = Difficulty::EASY;
     else if (hints == 20) difficulty = Difficulty::MEDIUM;
     else difficulty = Difficulty::HARD;
 
@@ -386,10 +386,13 @@ void MainWindow::cellChanged() {
     } 
     for (const auto &cell : conflictCells) {
         int row = cell.first;
-        int col = cell.second;
+        int col = cell.second;  
         QString style = baseCellStyle(row, col);
         style.replace(QRegularExpression("background-color: #[0-9a-fA-F]{6};"), "background-color:rgb(253, 72, 72);");  // red highlight for conflicting cells which are present.
         cells[row][col]->setStyleSheet("QLineEdit {" + style + "}");
+    }
+    if (conflictCells.isEmpty() && isBoardCorrectlySolved()) {
+        // All good and solved!
     }
 }
 
@@ -399,7 +402,7 @@ bool MainWindow::isBoardCorrectlySolved() {
     bool hasConflicts = false;
     for (int row = 0; row < 9; ++row) {
         for (int col = 0; col < 9; ++col) {
-            if (cells[row][col]->styleSheet() == "background-color: lightcoral;") {
+            if (cells[row][col]->styleSheet() == "background-color:rgb(253, 72, 72);") {
                 hasConflicts = true;
                 break;
             }

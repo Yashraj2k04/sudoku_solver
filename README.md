@@ -1,4 +1,2 @@
-disabled keyboard input completey, was messing up the moveStack reads.
-
-changed status label to read solved when board is solved (either by user or by solve button)
+solving by user was not working,  changed it to work when user completes the game
 
