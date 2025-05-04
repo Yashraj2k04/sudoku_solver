@@ -12,7 +12,8 @@
 #include <array>
 #include <stack>
 #include <tuple>
-
+#include <QTimer>
+#include <QTime>
 class MainWindow : public QMainWindow {
     Q_OBJECT                                            //Object that communicates with other windows
 
@@ -42,6 +43,10 @@ private:
     QPushButton *backButton;
     QLineEdit *cells[9][9];
     QLabel *statusLabel;
+    QLabel *timeLabel;
+    QTimer *gameTimer;
+    QTime startTime;
+
 
     QGridLayout *inputGridLayout;              // the 3x3 input grid 
     QLineEdit *selectedCell = nullptr;          // cell that we selected to edit

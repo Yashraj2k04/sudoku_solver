@@ -13,6 +13,18 @@
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     setupUI();
+    gameTimer = new QTimer(this);
+    gameTimer->setInterval(1000); // update every second
+
+    connect(gameTimer, &QTimer::timeout, this, [this]() {
+        int elapsed = startTime.secsTo(QTime::currentTime());
+        int minutes = elapsed / 60;
+        int seconds = elapsed % 60;
+        timeLabel->setText(QString("%1:%2")
+                            .arg(minutes, 2, 10, QLatin1Char('0'))
+                            .arg(seconds, 2, 10, QLatin1Char('0')));
+    });
+
 }
 
 void MainWindow::setupUI() {
@@ -33,6 +45,11 @@ void MainWindow::setupUI() {
     statusLabel->setStyleSheet("font-size: 20px; font-weight: bold;");
     QHBoxLayout *difficultyLayout = new QHBoxLayout();
     difficultyLayout->addWidget(statusLabel, 0, Qt::AlignCenter);
+    QHBoxLayout *timeLayout = new QHBoxLayout();
+    timeLabel = new QLabel("00:00",this);
+    timeLayout->addWidget(timeLabel, 0, Qt::AlignCenter);
+
+
     //difficulty label at center
 
     gridLayout = new QGridLayout();
@@ -208,6 +225,7 @@ void MainWindow::setupUI() {
     QVBoxLayout *containerLayout = new QVBoxLayout();
     containerLayout->setAlignment(Qt::AlignTop | Qt::AlignHCenter);
     containerLayout->addLayout(difficultyLayout);
+    containerLayout->addLayout(timeLayout);
     containerLayout->addLayout(gridLayout);
     containerLayout->addWidget(buttonContainer);
     containerLayout->addStretch();
@@ -217,7 +235,47 @@ void MainWindow::setupUI() {
     mainLayout->addLayout(backButtonLayout);
     mainLayout->addLayout(containerLayout);
 
-    connect(backButton, &QPushButton::clicked, this, &MainWindow::backToDifficultyScreen);
+    connect(backButton, &QPushButton::clicked, this, [this]() {
+    // Reset all cells to blank, default style, and read-only
+    for (int row = 0; row < 9; ++row) {
+        gameTimer->stop();
+        timeLabel->setText("00:00");
+
+        for (int col = 0; col < 9; ++col) {
+            QLineEdit *cell = cells[row][col];
+            cell->clear();
+            cell->setReadOnly(true);
+            cell->setStyleSheet(
+                "QLineEdit {"
+                "background-color: #ffffff;"
+                "color: #000000;"
+                "font-size: 18px;"
+                "border-style: solid;"
+                "border-width: 1px;"
+                "border-color: #000000;"
+                "margin: 0px;"
+                "padding: 0px;"
+                + QString(row % 3 == 0 ? "border-top-width: 4px;" : "") +
+                QString(col % 3 == 0 ? "border-left-width: 4px;" : "") +
+                QString(col == 8 ? "border-right-width: 4px;" : "") +
+                QString(row == 8 ? "border-bottom-width: 4px;" : "") +
+                "}"
+            );
+
+            // Disable keyboard input
+            QRegExpValidator *emptyValidator = new QRegExpValidator(QRegExp(""), this);
+            cell->setValidator(emptyValidator);
+        }
+    }
+
+    // Disable solve button
+    solveButton->setEnabled(false);
+
+    // Clear status label
+    statusLabel->clear();
+    MainWindow::backToDifficultyScreen();
+});
+
     connect(generateButton, &QPushButton::clicked, this, [this]() { generateSudoku(currentHints); });
     connect(solveButton, &QPushButton::clicked, this, &MainWindow::solveSudoku);
     
@@ -291,6 +349,12 @@ void MainWindow::setHints(int hints) {
 }       // difficulty label set as per the selected difficulty
 
 void MainWindow::generateSudoku(int hints) {
+
+    startTime = QTime::currentTime();
+    gameTimer->start();
+    timeLabel->setText("00:00");  // reset display
+    
+
     currentHints = hints;
     generated = true;       
     solveButton->setEnabled(true);      // generated is true, now enable solve button
@@ -308,7 +372,7 @@ void MainWindow::generateSudoku(int hints) {
             if (board[row][col] != 0) {
                 cells[row][col]->setText(QString::number(board[row][col]));
                 cells[row][col]->setReadOnly(true);
-                cells[row][col]->setStyleSheet(baseCellStyle(row, col) + "background-color:rgb(236, 236, 236);"); 
+                cells[row][col]->setStyleSheet(baseCellStyle(row, col) + "background-color: #d3d3d3;"); 
             } else {
                 cells[row][col]->clear();
                 cells[row][col]->setReadOnly(false);
@@ -317,6 +381,15 @@ void MainWindow::generateSudoku(int hints) {
             // if a cell was pregenerated, make its background grey to make it distinguishable from other editable cells
             
         }
+    }
+    if(currentHints == 35){
+        statusLabel->setText("Difficulty: Easy");
+    }
+    else if(currentHints == 20){
+        statusLabel->setText("Difficulty: Medium");
+    }
+    else if(currentHints == 15){
+        statusLabel->setText("Difficulty: Hard");
     }
 }
 
@@ -424,7 +497,9 @@ bool MainWindow::isBoardCorrectlySolved() {
 
     // If no conflicts and all cells are filled, the board is correctly solved
     if (!hasConflicts && allFilled) {
+        gameTimer->stop();
         statusLabel->setText("Solved!");
+
         return true;
 
         while (!moveStack.empty()) moveStack.pop();
@@ -434,6 +509,7 @@ bool MainWindow::isBoardCorrectlySolved() {
 
     return false;
 }
+
 
 
 
