@@ -22,7 +22,7 @@ set(SOURCES
 
 
 
-find_package(Qt5 COMPONENTS Widgets REQUIRED)
+find_package(Qt5 COMPONENTS Widgets Sql REQUIRED)
 
 qt5_wrap_cpp(MOC_SOURCES 
             ui/main_window.h
@@ -51,7 +51,7 @@ add_executable(SudokuSolver ${SOURCES} ${MOC_SOURCES})     #executable added by 
 
 
 ### Gotta link qt widget libraries, yeah? 
-target_link_libraries(SudokuSolver Qt5::Widgets)
+target_link_libraries(SudokuSolver Qt5::Widgets Qt5::Sql)
 
 
 add_custom_target(run                           #run target to  run the executable.

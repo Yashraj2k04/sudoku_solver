@@ -2,6 +2,10 @@
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 
+#include <QSqlQuery>
+#include <QSqlError>
+#include <QMessageBox>
+
 Login::Login(QWidget* parent) : QWidget(parent){
     setupUI();
     setupConnections();
@@ -122,14 +126,79 @@ void Login::setupUI() {
 
 
 void Login::handleLogin(){
-    emit loginSuccessful();
+    QString username = usernameField->text().trimmed();
+    QString password = passwordField->text();
+
+    if(username.isEmpty() || password.isEmpty()){
+        QMessageBox::warning(this,"Error","Enter valid username and password");
+        return;
+    }
+    QSqlQuery query;
+    query.prepare("SELECT password_hash FROM users WHERE username = :username");    //sqlite query to check for username in table as passed from the gui
+    query.bindValue(":username",username);
+
+    if(!query.exec()){
+        QMessageBox::warning(this,"Error","Failed to access database:\n" + query.lastError().text());
+        return;
+    }
+    if(query.next()){
+        QString storedPassword = query.value(0).toString();
+        if(storedPassword == password){
+            usernameField->clear();     //clearing fileds before changing screens (stacked widgets)
+            passwordField->clear();
+            emit loginSuccessful();
+        }
+        else{
+            QMessageBox::warning(this,"Login failed","Incorrect Password");
+        }
+
+    }
+    else{
+        QMessageBox::warning(this,"Login failed","User not found");
+    }
+
 }
 
+void Login::handleSignUp(){
+    QString username = usernameField->text().trimmed();
+    QString password = passwordField->text();
+
+    if(username.isEmpty() || password.isEmpty()){
+        QMessageBox::warning(this,"Error","Enter both username and password");
+        return;
+
+    }
+    QSqlQuery query;
+    query.prepare("INSERT INTO users (username, password_hash) VALUES(:username , :password)"); //query to insert new user in db
+    query.bindValue(":username",username);
+    query.bindValue(":password",password);
+
+    if(!query.exec()){
+        if(query.lastError().nativeErrorCode() == "19"){        //response code given by sql??
+            QMessageBox::warning(this, "Error", "Username already exists");
+            return;
+        }
+        else{
+            QMessageBox::warning(this,"Critical!","Database Error: Failed to insert user:\n" + query.lastError().text());
+        }
+        return;
+    }
+    QMessageBox::information(this,"Sign up successful", "You can now Sign in.");
+    usernameField->clear();
+    passwordField->clear();
+
+    
+}
+
+
 void Login::handleBack(){
+    usernameField->clear();
+    passwordField->clear();
     emit backRequested();
 }
 
 void Login::setupConnections(){
     connect(signInButton, &QPushButton::clicked, this, &Login::handleLogin);
+    connect(signUpButton, &QPushButton::clicked, this , &Login::handleSignUp);
     connect(backButton, &QPushButton::clicked, this, &Login::handleBack);
 }

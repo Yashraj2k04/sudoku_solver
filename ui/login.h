@@ -22,6 +22,7 @@ class Login : public QWidget{
     private slots:
         void handleLogin();                 //the function that will handle the signal 
         void handleBack();
+        void handleSignUp();
 
     private:
         QLineEdit *usernameField;
