@@ -29,6 +29,7 @@
         void setupLoginConnections();
 
         bool loginStatus;
+        QString currentUsernname;
 
         
     };

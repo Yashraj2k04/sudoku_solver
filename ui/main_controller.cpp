@@ -64,9 +64,12 @@ void MainController::setupLoginConnections() {
         stackedWidget->setCurrentWidget(mainMenu);
     });
 
-    connect(loginScreen, &Login::loginSuccessful, [this]() {
+    connect(loginScreen, &Login::loginSuccessful, [this](const QString &username) {
         loginStatus = true;
         mainMenu->updateButtons(true); // Update button text after login
+
+        currentUsernname = username;
+        mainWindow->setUsername(currentUsernname);
         stackedWidget->setCurrentWidget(mainMenu);
     });
 }

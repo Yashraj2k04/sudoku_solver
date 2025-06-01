@@ -1,5 +1,4 @@
-added a db to handle login and sign up. everything is local
-using sqlite db.
+changed code 
+    the system time gets past midnight and the clock resets, if solved, the timer displays something like -13xx:62 (yes i did run into that lmao)
 
-next is to store number of games played in each difficulty, average and best times etc.
-can try to ship it to online players later in the future
+    

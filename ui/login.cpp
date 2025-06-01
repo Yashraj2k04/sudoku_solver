@@ -146,7 +146,7 @@ void Login::handleLogin(){
         if(storedPassword == password){
             usernameField->clear();     //clearing fileds before changing screens (stacked widgets)
             passwordField->clear();
-            emit loginSuccessful();
+            emit loginSuccessful(username);
         }
         else{
             QMessageBox::warning(this,"Login failed","Incorrect Password");

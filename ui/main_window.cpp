@@ -10,6 +10,11 @@
 #include <QPair>
 #include <QHash>
 #include <QTimer>
+#include <QSqlDatabase>
+#include <QSqlError>
+#include <QDebug>
+#include <QSqlQuery>
+
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     setupUI();
@@ -18,14 +23,20 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
 
     connect(gameTimer, &QTimer::timeout, this, [this]() {
         int elapsed = startTime.secsTo(QTime::currentTime());
+
+        // Fix: handle case when currentTime is after midnight (wraparound)
+        if (elapsed < 0)
+            elapsed += 24 * 60 * 60; // add 86400 seconds (24 hours)
+
         int minutes = elapsed / 60;
         int seconds = elapsed % 60;
+
         timeLabel->setText(QString("%1:%2")
                             .arg(minutes, 2, 10, QLatin1Char('0'))
                             .arg(seconds, 2, 10, QLatin1Char('0')));
     });
-
 }
+
 
 void MainWindow::setupUI() {
     centralWidget = new QWidget(this);
@@ -409,7 +420,7 @@ void MainWindow::solveSudoku() {
     solveButton->setEnabled(false);     //solves board. sets generated to false, disables enabled solve button
 
 
-    isBoardCorrectlySolved();
+    cellChanged();
 }
 
 void MainWindow::cellChanged() {
@@ -495,14 +506,48 @@ bool MainWindow::isBoardCorrectlySolved() {
         if (!allFilled) break;
     }
 
+
+
     // If no conflicts and all cells are filled, the board is correctly solved
     if (!hasConflicts && allFilled) {
         gameTimer->stop();
         statusLabel->setText("Solved!");
 
+        while (!moveStack.empty()) moveStack.pop();
+
+
+        QSqlQuery queryToGetGameNumber;
+        int gameNumber;
+        queryToGetGameNumber.prepare("SELECT MAX(game_number) FROM game_sessions WHERE username = :username");
+        queryToGetGameNumber.bindValue(":username", currentUsername);
+        if (!queryToGetGameNumber.exec()) {
+        qWarning() << "Failed to query max game_number:" << queryToGetGameNumber.lastError().text();
+        gameNumber =  1;  // fallback to 1
+        }
+        if (queryToGetGameNumber.next()) {
+            gameNumber = queryToGetGameNumber.value(0).toInt();
+            gameNumber =  gameNumber + 1;
+        }
+
+        
+            int durationSeconds = startTime.secsTo(QTime::currentTime());
+            QSqlQuery query;
+            query.prepare("INSERT INTO game_sessions (username, game_number, duration_seconds) "
+                        "VALUES (:username, :game_number, :duration)");
+            query.bindValue(":username", currentUsername);
+            query.bindValue(":game_number", gameNumber);
+            query.bindValue(":duration", durationSeconds);
+
+            if (!query.exec()) {
+                qDebug() << "Insert failed:" << query.lastError().text();
+            } else {
+                qDebug() << "Game session inserted.";
+            }
+
         return true;
 
-        while (!moveStack.empty()) moveStack.pop();
+
+
 
     }
 
@@ -514,3 +559,6 @@ bool MainWindow::isBoardCorrectlySolved() {
 
 
 
+void MainWindow::setUsername(const QString &username) {
+    this->currentUsername = username;  // assuming you have a member QString currentUsername;
+}

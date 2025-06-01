@@ -21,6 +21,8 @@ public:
     MainWindow(QWidget *parent = nullptr);              // sets difficulty level
     void setHints(int hints);
 
+    void setUsername(const QString &username);
+
 signals:
     void backToDifficultyScreen();                      // signal to take us back to select difficulty
 
@@ -47,6 +49,8 @@ private:
     QTimer *gameTimer;
     QTime startTime;
 
+
+    QString currentUsername;
 
     QGridLayout *inputGridLayout;              // the 3x3 input grid 
     QLineEdit *selectedCell = nullptr;          // cell that we selected to edit

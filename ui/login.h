@@ -16,7 +16,7 @@ class Login : public QWidget{
         explicit Login(QWidget* parent = nullptr);
 
     signals:
-        void loginSuccessful();             //signal to be emitted upon some action (a function to be called)
+        void loginSuccessful(const QString &username);             //signal to be emitted upon some action (a function to be called)
         void backRequested();
 
     private slots:
