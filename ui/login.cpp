@@ -6,6 +6,8 @@
 #include <QSqlError>
 #include <QMessageBox>
 
+#include <QCryptographicHash>
+
 Login::Login(QWidget* parent) : QWidget(parent){
     setupUI();
     setupConnections();
@@ -125,59 +127,66 @@ void Login::setupUI() {
 
 
 
-void Login::handleLogin(){
+void Login::handleLogin() {
     QString username = usernameField->text().trimmed();
     QString password = passwordField->text();
 
-    if(username.isEmpty() || password.isEmpty()){
-        QMessageBox::warning(this,"Error","Enter valid username and password");
+    if(username.isEmpty() || password.isEmpty()) {
+        QMessageBox::warning(this, "Error", "Enter valid username and password");
         return;
     }
-    QSqlQuery query;
-    query.prepare("SELECT password_hash FROM users WHERE username = :username");    //sqlite query to check for username in table as passed from the gui
-    query.bindValue(":username",username);
 
-    if(!query.exec()){
-        QMessageBox::warning(this,"Error","Failed to access database:\n" + query.lastError().text());
+    // Hash the entered password the same way as during signup
+    QString hashedPassword = QString(QCryptographicHash::hash(password.toUtf8(), QCryptographicHash::Sha256).toHex());
+
+    QSqlQuery query;
+    query.prepare("SELECT password_hash FROM users WHERE username = :username"); // MySQL query
+    query.bindValue(":username", username);
+
+    if(!query.exec()) {
+        QMessageBox::warning(this, "Error", "Failed to access database:\n" + query.lastError().text());
         return;
     }
-    if(query.next()){
+
+    if(query.next()) {
         QString storedPassword = query.value(0).toString();
-        if(storedPassword == password){
-            usernameField->clear();     //clearing fileds before changing screens (stacked widgets)
+        if(storedPassword == hashedPassword) {  // Compare hashed passwords
+            usernameField->clear();
             passwordField->clear();
             emit loginSuccessful(username);
+        } else {
+            QMessageBox::warning(this, "Login failed", "Incorrect Password");
         }
-        else{
-            QMessageBox::warning(this,"Login failed","Incorrect Password");
-        }
-
+    } else {
+        QMessageBox::warning(this, "Login failed", "User not found");
     }
-    else{
-        QMessageBox::warning(this,"Login failed","User not found");
-    }
-
 }
+
 
 void Login::handleSignUp(){
     QString username = usernameField->text().trimmed();
     QString password = passwordField->text();
+
+
 
     if(username.isEmpty() || password.isEmpty()){
         QMessageBox::warning(this,"Error","Enter both username and password");
         return;
 
     }
+    QString hashedPassword = QString(QCryptographicHash::hash(password.toUtf8(), QCryptographicHash::Sha256).toHex());
+
+
     QSqlQuery query;
     query.prepare("INSERT INTO users (username, password_hash) VALUES(:username , :password)"); //query to insert new user in db
     query.bindValue(":username",username);
-    query.bindValue(":password",password);
+    query.bindValue(":password",hashedPassword);
 
     if(!query.exec()){
-        if(query.lastError().nativeErrorCode() == "19"){        //response code given by sql??
+        if(query.lastError().nativeErrorCode() == "1062") {
             QMessageBox::warning(this, "Error", "Username already exists");
             return;
-        }
+        }        
         else{
             QMessageBox::warning(this,"Critical!","Database Error: Failed to insert user:\n" + query.lastError().text());
         }

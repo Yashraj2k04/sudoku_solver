@@ -351,10 +351,10 @@ QString MainWindow::baseCellStyle(int row, int col) {
 
 void MainWindow::setHints(int hints) {
     currentHints = hints;
-    QString difficultyText;
+    QString difficultyText = "";
     if (hints == 35) difficultyText = "Difficulty: Easy";
     else if (hints == 20) difficultyText = "Difficulty: Medium";
-    else difficultyText = "Difficulty: Hard";
+    else if (hints==15) difficultyText = "Difficulty: Hard";
 
     statusLabel->setText(difficultyText);
 }       // difficulty label set as per the selected difficulty
@@ -372,7 +372,7 @@ void MainWindow::generateSudoku(int hints) {
     Generator generator;
 
     Difficulty difficulty;
-    if (hints == 35) difficulty = Difficulty::EASY;
+    if (hints == 40) difficulty = Difficulty::EASY;
     else if (hints == 20) difficulty = Difficulty::MEDIUM;
     else difficulty = Difficulty::HARD;
 
@@ -393,7 +393,7 @@ void MainWindow::generateSudoku(int hints) {
             
         }
     }
-    if(currentHints == 35){
+    if(currentHints == 40){
         statusLabel->setText("Difficulty: Easy");
     }
     else if(currentHints == 20){
@@ -512,44 +512,52 @@ bool MainWindow::isBoardCorrectlySolved() {
     if (!hasConflicts && allFilled) {
         gameTimer->stop();
         statusLabel->setText("Solved!");
-
         while (!moveStack.empty()) moveStack.pop();
-
-
-        QSqlQuery queryToGetGameNumber;
-        int gameNumber;
-        queryToGetGameNumber.prepare("SELECT MAX(game_number) FROM game_sessions WHERE username = :username");
-        queryToGetGameNumber.bindValue(":username", currentUsername);
-        if (!queryToGetGameNumber.exec()) {
-        qWarning() << "Failed to query max game_number:" << queryToGetGameNumber.lastError().text();
-        gameNumber =  1;  // fallback to 1
+    
+        int userId = -1;
+    
+        // Get user ID
+        QSqlQuery queryUserId;
+        queryUserId.prepare("SELECT id FROM users WHERE username = :username");
+        queryUserId.bindValue(":username", currentUsername);
+        if (!queryUserId.exec()) {
+            qWarning() << "Failed to get user_id:" << queryUserId.lastError().text();
+            return false;
         }
-        if (queryToGetGameNumber.next()) {
-            gameNumber = queryToGetGameNumber.value(0).toInt();
-            gameNumber =  gameNumber + 1;
+        if (queryUserId.next()) {
+            userId = queryUserId.value(0).toInt();
+        } else {
+            qWarning() << "User not found in database!";
+            return false;
         }
-
-        
-            int durationSeconds = startTime.secsTo(QTime::currentTime());
-            QSqlQuery query;
-            query.prepare("INSERT INTO game_sessions (username, game_number, duration_seconds) "
-                        "VALUES (:username, :game_number, :duration)");
-            query.bindValue(":username", currentUsername);
-            query.bindValue(":game_number", gameNumber);
-            query.bindValue(":duration", durationSeconds);
-
-            if (!query.exec()) {
-                qDebug() << "Insert failed:" << query.lastError().text();
-            } else {
-                qDebug() << "Game session inserted.";
-            }
-
+    
+        // Determine next game number
+        int gameNumber = 1;
+        QSqlQuery queryMaxGame;
+        queryMaxGame.prepare("SELECT MAX(game_number) FROM game_sessions WHERE user_id = :user_id");
+        queryMaxGame.bindValue(":user_id", userId);
+        if (queryMaxGame.exec() && queryMaxGame.next() && !queryMaxGame.value(0).isNull()) {
+            gameNumber = queryMaxGame.value(0).toInt() + 1;
+        }
+    
+        // Insert game session
+        int durationSeconds = startTime.secsTo(QTime::currentTime());
+        QSqlQuery queryInsert;
+        queryInsert.prepare("INSERT INTO game_sessions (user_id, game_number, duration_seconds) "
+                            "VALUES (:user_id, :game_number, :duration)");
+        queryInsert.bindValue(":user_id", userId);
+        queryInsert.bindValue(":game_number", gameNumber);
+        queryInsert.bindValue(":duration", durationSeconds);
+    
+        if (!queryInsert.exec()) {
+            qDebug() << "Insert failed:" << queryInsert.lastError().text();
+        } else {
+            qDebug() << "Game session inserted.";
+        }
+    
         return true;
-
-
-
-
     }
+    
 
 
     return false;

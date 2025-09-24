@@ -70,8 +70,8 @@ void Difficulty::setupUI() {
 
 void Difficulty::setupConnections() {
     connect(easyButton, &QPushButton::clicked, this, [this]() {
-        emit easySelected(35);
-        emit difficultySelected(35);
+        emit easySelected(40);
+        emit difficultySelected(40);
     });
     connect(mediumButton, &QPushButton::clicked, this, [this]() {
         emit mediumSelected(20);

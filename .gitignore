@@ -6,3 +6,4 @@ build/
 CMakeFiles/
 CMakeCache.txt
 users.db
+config.json
